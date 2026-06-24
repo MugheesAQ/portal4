@@ -1,0 +1,6 @@
+{
+  "title": "Citizen Portal Metrics",
+  "panels": [
+    { "type": "graph", "title": "HTTP Requests", "targets": [{ "expr": "rate(http_requests_total[1m])" }] }
+  ]
+}

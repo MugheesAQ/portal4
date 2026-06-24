@@ -1,11 +1,28 @@
-<div align="center">
+# DESC Digital Innovation Center — Citizen Portal
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A complete microservices-based Citizen Portal application.
 
-  <h1>Built with AI Studio</h2>
+## How to Start
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+1. Clone and enter the project
+   `cd desc-citizen-portal`
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+2. Copy env file
+   `cp .env.example .env`
 
-</div>
+3. Start everything
+   `docker compose up --build`
+
+4. Access the app
+   - Citizen Portal:     http://localhost:8080
+   - Grafana:            http://localhost:3030  (admin / admin)
+   - Prometheus:         http://localhost:9090
+   - Loki:               http://localhost:3100
+
+5. Login as officer
+   - Badge: OFF-001
+   - Password: officer123
+
+6. Login as citizen (Demo account)
+   - CNIC: 42101-1234567-1
+   - Password: citizen123
