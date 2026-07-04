@@ -1,13 +1,95 @@
 version: '3.8'
 services:
-  app:
+  # 1. API GATEWAY (NGINX)
+  api-gateway:
     build:
+      context: ./gateway/nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - auth-service
+      - citizen-service
+      - complaint-service
+      - notification-service
+    networks:
+      - portal-network
+    restart: unless-stopped
+
+  # 2. DATABASE (POSTGRESQL)
+  postgres-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: desc_admin
+      POSTGRES_PASSWORD: desc_secure_2026
+      POSTGRES_DB: citizen_portal
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - portal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U desc_admin -d citizen_portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. MICROSERVICES
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      - POSTGRES_HOST=postgres-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=citizen_portal
+      - POSTGRES_USER=desc_admin
+      - POSTGRES_PASSWORD=desc_secure_2026
+      - JWT_SECRET=desc_secure_jwt_secret_key
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - portal-network
+
+  citizen-service:
+    build: ./services/citizen-service
+    environment:
+      - POSTGRES_HOST=postgres-db
+      - POSTGRES_USER=desc_admin
+      - POSTGRES_PASSWORD=desc_secure_2026
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - portal-network
+
+  complaint-service:
+    build: ./services/complaint-service
+    environment:
+      - POSTGRES_HOST=postgres-db
+      - POSTGRES_USER=desc_admin
+      - POSTGRES_PASSWORD=desc_secure_2026
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - portal-network
+
+  # 4. FRONTEND (React SPA)
+  frontend:
+    build: 
       context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8080/api
+    networks:
+      - portal-network
+
+volumes:
+  postgres-data:
+
+networks:
+  portal-network:
+    driver: bridge
